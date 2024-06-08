@@ -174,7 +174,7 @@ for( icorrida in seq(nrow(PARAM$corridas)) ){
 # Bajo de Kaggle la ganancia de los ultimos 50 submits 
 l1 <- "#!/bin/bash\n"
 l2 <- "source ~/.venv/bin/activate  \n"
-l3 <- "kaggle competitions submissions -c itba-data-mining-2024-cohorteb  -v > Kaggle_Public.csv \n"
+l3 <- "kaggle competitions submissions -c labo-i-2024-rosario  -v > Kaggle_Public.csv \n"
 l4 <- "deactivate \n"
 cat( paste0( l1, l2, l3, l4 ) , file = "bajar.sh" )
 Sys.chmod( "bajar.sh", mode = "744", use_umask = TRUE)
