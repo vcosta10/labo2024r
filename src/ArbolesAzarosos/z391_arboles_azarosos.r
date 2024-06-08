@@ -148,7 +148,7 @@ for( icorrida in seq(nrow(PARAM$corridas)) ){
       l1 <- "#!/bin/bash \n"
       l2 <- "source ~/.venv/bin/activate  \n"
 
-      l3 <- paste0( "kaggle competitions submit   -c itba-data-mining-2024-cohorteb ")
+      l3 <- paste0( "kaggle competitions submit   -c labo-i-2024-rosario ")
       l3 <- paste0( l3, " -f ", nom_arch_kaggle )
       l3 <- paste0( l3,  " -m ",  "\"", "exp=", PARAM$experimento,  " , ")
       l3 <- paste0( l3,  "arbolitos=", arbolito, ", ")
