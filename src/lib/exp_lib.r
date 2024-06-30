@@ -828,7 +828,7 @@ exp_correr_script <- function( pparam_local )
     linea$id <- pparam_local$expenv$instruction
     linea$status <- "previo_end"
     linea$workflow <- pparam_local$expenv$carpeta_wf
-    linea$experimento <- exp_carpeta
+    linea$expw <- exp_carpeta
     linea$funcion <- pparam_local$expenv$funcname
     mlog_log( linea, "bitacora_run.txt")
 
@@ -862,7 +862,7 @@ exp_correr_script <- function( pparam_local )
     linea$id <- pparam_local$expenv$instruction
     linea$status <- "previo_bypass"
     linea$workflow <- pparam_local$expenv$carpeta_wf
-    linea$experimento <- exp_carpeta
+    linea$expw <- exp_carpeta
     linea$funcion <- pparam_local$expenv$funcname
     mlog_log( linea, "bitacora_run.txt")
 
@@ -886,7 +886,7 @@ exp_correr_script <- function( pparam_local )
     linea$id <- pparam_local$expenv$instruction
     linea$status <- "previo_resume"
     linea$workflow <- pparam_local$expenv$carpeta_wf
-    linea$experimento <- exp_carpeta
+    linea$expw <- exp_carpeta
     linea$funcion <- pparam_local$expenv$funcname
     mlog_log( linea, "bitacora_run.txt")
 
@@ -941,7 +941,7 @@ exp_correr_script <- function( pparam_local )
   linea$id <- pparam_local$expenv$instruction
   linea$status <- "actual_run"
   linea$workflow <- pparam_local$expenv$carpeta_wf
-  linea$experimento <- paste0( pparam_local$expenv$exp_dir, pparam_local$expenv$nom_experimento)
+  linea$expw <- paste0( pparam_local$expenv$exp_dir, pparam_local$expenv$nom_experimento)
   linea$funcion <- pparam_local$expenv$funcname
   mlog_log( linea, "bitacora_run.txt")
 
