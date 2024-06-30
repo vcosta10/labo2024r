@@ -106,7 +106,7 @@ mlflow_exp_det <- paste0( "/futu-", datahash )
 mlog_addfile("ganancias_log.txt",
              mlflow_exp= mlflow_exp_det,
              mlflow_run= envg$PARAM$experimento,
-             cols_fijas= list() )
+             cols_fijas= list(expw=envg$PARAM$experimento_largo) )
 
 
 
