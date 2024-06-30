@@ -1,3 +1,4 @@
+
 require("rlang")
 require("rlist")
 require("yaml")
@@ -8,6 +9,84 @@ require("digest")
 if( !exists("envg") ) envg <- env()  # global environment 
 
 #------------------------------------------------------------------------------
+
+safe_mlflow_set_tracking_uri <- function( uri )
+{
+  res <- list()
+  res$error <- FALSE
+  tryCatch( { res$out <- mlflow_set_tracking_uri(uri) }
+           , error = function(e) {res$error <- TRUE})
+
+ return( res )
+}
+#------------------------------------------------------------------------------
+
+safe_mlflow_set_experiment  <- function(
+  experiment_name = NULL,
+  experiment_id = NULL,
+  artifact_location = NULL
+)
+{
+  res <- list()
+  res$error <- FALSE
+  tryCatch( { res$out <- mlflow_set_experiment(experiment_name, experiment_id, artifact_location)}
+           , error = function(e) {res$error <- TRUE})
+
+ return( res )
+}
+#------------------------------------------------------------------------------
+
+safe_mlflow_start_run  <- function(
+  run_id = NULL,
+  experiment_id = NULL,
+  start_time = NULL,
+  tags = NULL,
+  client = NULL,
+  nested = FALSE
+)
+{
+  res <- list()
+  res$error <- FALSE
+  tryCatch( { res$out <- mlflow_start_run(run_id, experiment_id, start_time, tags, client, nested )}
+           , error = function(e) {res$error <- TRUE})
+
+ return( res )
+}
+#------------------------------------------------------------------------------
+
+safe_mlflow_log_batch  <- function(
+  metrics = NULL,
+  params = NULL,
+  tags = NULL,
+  run_id = NULL,
+  client = NULL
+)
+{
+  res <- list()
+  res$error <- FALSE
+  tryCatch( { res$out <- mlflow_log_batch(metrics, params, tags, run_id, client )}
+           , error = function(e) {res$error <- TRUE})
+
+ return( res )
+}
+#------------------------------------------------------------------------------
+
+safe_mlflow_end_run  <- function(
+  status = "FINISHED",
+  end_time = NULL,
+  run_id = NULL,
+  client = NULL
+)
+{
+  res <- list()
+  res$error <- FALSE
+  tryCatch( { res$out <- mlflow_end_run(status, end_time, run_id, client )}
+           , error = function(e) {res$error <- TRUE})
+
+ return( res )
+}
+#------------------------------------------------------------------------------
+
 #inicializo el ambiente de mlflow
 
 mlog_mlflow_iniciar  <- function()
@@ -19,7 +98,9 @@ mlog_mlflow_iniciar  <- function()
   # seteo variables de entorno que necesita mlflow CLI
   Sys.setenv( MLFLOW_TRACKING_USERNAME= envg$mlog$mlflow$conn$tracking_username )
   Sys.setenv( MLFLOW_TRACKING_PASSWORD= envg$mlog$mlflow$conn$tracking_password )
-  res <- mlflow_set_tracking_uri( envg$mlog$mlflow$conn$tracking_uri )
+  
+  res <- safe_mlflow_set_tracking_uri( envg$mlog$mlflow$conn$tracking_uri )
+  if( res$error ) return( res )
 
   Sys.setenv( PATH=paste0( "/home/", envg$mlog$usuario, "/.venv/bin:",
                            Sys.getenv("PATH")) )
@@ -28,12 +109,23 @@ mlog_mlflow_iniciar  <- function()
   Sys.setenv(MLFLOW_BIN= Sys.which("mlflow") )
   Sys.setenv(MLFLOW_PYTHON_BIN= Sys.which("python3") )
   Sys.setenv(MLFLOW_TRACKING_URI= envg$mlog$mlflow$conn$tracking_uri, intern= TRUE )
+
+  return( res )
 }
 #------------------------------------------------------------------------------
-# log de una list()
 
-mlog_log_mlflow_reg  <- function( preg, prev="", onlymetrics=FALSE )
+mlog_list2tables  <- function( preg, prev="")
 {
+  tb_metrics <- data.table(
+    "key1"= character(),
+    value= numeric()
+  )
+
+  tb_params <- data.table(
+    key1= character(),
+    value= character()
+  )
+
   prefijo <- ifelse( prev=="", "", paste0(prev,".") )
 
   for( campo in names(preg) )
@@ -42,59 +134,98 @@ mlog_log_mlflow_reg  <- function( preg, prev="", onlymetrics=FALSE )
     tipo <- typeof( preg[[ campo ]] )
 
     if( tipo %in% c("double","integer") )
-         mlflow_log_metric( campo_mostrar, preg[[ campo ]] )
+       tb_metrics <- rbindlist( list(tb_metrics, list( campo_mostrar, preg[[ campo ]] ) ))
 
     if( tipo %in% c("logical") )
-      mlflow_log_metric( campo_mostrar, as.integer(preg[[ campo ]]) )
+      tb_metrics <- rbindlist( list( tb_metrics, list( campo_mostrar, as.integer(preg[[ campo ]])) ))
 
-    if( tipo %in% c("character", "symbol") & !onlymetrics )
-      mlflow_log_param( campo_mostrar, preg[[ campo ]] )
+    if( tipo %in% c("character", "symbol") )
+     tb_params <- rbindlist( list(tb_params, list( campo_mostrar, preg[[ campo ]]) ))
 
-    if( tipo %in% c("list") )
-    {
+   if( tipo %in% c("list") )
+   {
       nuevo_prefijo <- paste0( prefijo, campo )
-      mlog_log_mlflow_reg( preg[[ campo ]], nuevo_prefijo, onlymetrics )
-    }
+      tbls <- mlog_list2tables( preg[[ campo ]], nuevo_prefijo )
+      tb_metrics <- rbindlist( list( tb_metrics, tbls$tb_metrics ) )
+      tb_params <- rbindlist( list( tb_params, tbls$tb_params ) )
+   }
   }
- 
+
+  return( list( "tb_metrics"=tb_metrics, "tb_params"=tb_params) )
 }
 #------------------------------------------------------------------------------
-# registro "linea"  en MLFlow
+
+mlog_log_mlflow_reg  <- function( preg, iter, prev="", onlymetrics=FALSE )
+{
+  t1 <- as.integer(Sys.time())
+
+  res <- mlog_list2tables( preg )
+
+  res$tb_metrics$step <- iter
+  res$tb_metrics$timestamp <- t1
+
+  # carpinteria fea
+  setnames( res$tb_metrics, "key1", "key" ) 
+  setnames( res$tb_params, "key1", "key" )
+
+  if( onlymetrics == FALSE )
+  {
+    res <- safe_mlflow_log_batch( res$tb_metrics, res$tb_params )
+    return( res )
+  } else {
+    res <- safe_mlflow_log_batch( res$tb_metrics )
+    return( res )
+  }
+}
+#------------------------------------------------------------------------------
 
 mlog_log_mlflow  <- function( reg, archivo, t0, parentreplicate=FALSE )
 {
   #Inicio mlflow de ser necesario
   if( ! envg$mlog$mlflow$iniciado )
   {
-    mlog_mlflow_iniciar()
-    envg$mlog$mlflow$iniciado <- TRUE
+    res <- mlog_mlflow_iniciar()
+   if( res$error )   return(1)
+    if( !res$error )
+      envg$mlog$mlflow$iniciado <- TRUE
   }
 
   tarch <- envg$mlog$larch$archivos[[ archivo ]]
+  tarch$mlflow$contador <- tarch$mlflow$contador + 1
 
   # seteo el experimento, lo crea si no existe
-  envg$serverdown <- FALSE
-  tryCatch( { tarch$mlflow$exp_id <- mlflow_set_experiment(tarch$mlflow$exp_name); print(tarch$mlflow$exp_id) }
-          , error = function(e) {envg$serverdown <- TRUE})
-  print(envg$serverdown)
-  if( envg$serverdown ) return( -1 ) 
+  if( !( "exp_id" %in% names( tarch$mlflow ) ) )
+  {
+   res <- safe_mlflow_set_experiment( tarch$mlflow$exp_name )
+   if( res$error ) return( 1 )
+   tarch$mlflow$exp_id <- res$out
+  }
+
+  reg_base <- list()
+  reg_base$mlfowexp <- tarch$mlflow$exp_name
+  reg_base$mlfowrun <- tarch$mlflow$run_name
+  reg_base$usuario <- envg$mlog$usuario 
+  reg_base$maquina <- envg$mlog$maquina
+  reg_base$fecha <-  as.numeric(format(t0, "%Y%m%d.%H%M%S"))
+  reg_base <- c( reg_base, tarch$cols_fijas )
+
+  reg_padre <- copy(reg_base)
+  reg_padre$jerarquia <- "padre"
+
+  reg_hijo <- copy(reg_base)
+  reg_hijo$jerarquia <- "hijo"
+  reg_hijo <- c(reg_hijo, reg)
 
 
   if( !tarch$mlflow$padre_creado )
   {
     # creo el experimento padre si hace falta
-    tarch$mlflow$padre_exp <- mlflow_start_run( experiment_id= tarch$mlflow$exp_id)
+    res <- safe_mlflow_start_run( experiment_id= tarch$mlflow$exp_id )
+    if( res$error ) return( 2 )
+    tarch$mlflow$padre_exp <- res$out
 
-   # siempre las primeras columnas
-    mlflow_log_param("mlfowexp", tarch$mlflow$exp_name )
-    mlflow_log_param("mlfowrun", tarch$mlflow$run_name )
-    mlflow_log_param("usuario", envg$mlog$usuario )
-    mlflow_log_param("jerarquia", "padre" )
-    mlflow_log_param("maquina", envg$mlog$maquina )
-    mlflow_log_metric("fecha", as.numeric(format(t0, "%Y%m%d.%H%M%S")) )
-
-    # las columnas fijas
-    mlog_log_mlflow_reg( tarch$cols_fijas )
+    res <- mlog_log_mlflow_reg( reg_padre, iter=tarch$mlflow$contador )
+    if( res$error ) return( 3 )
 
     tarch$mlflow$padre_creado <- TRUE
     tarch$mlflow$padre_activo <- TRUE
@@ -103,38 +234,37 @@ mlog_log_mlflow  <- function( reg, archivo, t0, parentreplicate=FALSE )
   # restauro el PADRE si hace falta
   if( ! tarch$mlflow$padre_activo )
   {
-    mlflow_start_run(run_id= tarch$mlflow$padre_exp$run_uuid )
+    res <- safe_mlflow_start_run( run_id= tarch$mlflow$padre_exp$run_uuid )
+    if( res$error ) return( 4 )
+
     tarch$mlflow$padre_activo <- TRUE
   }
 
   if( parentreplicate )
   {
-    mlflow_log_metric("fecha", as.numeric(format(t0, "%Y%m%d.%H%M%S")) )
-    mlog_log_mlflow_reg( reg, onlymetrics=TRUE )
+    res <- mlog_log_mlflow_reg( reg_hijo, iter=tarch$mlflow$contador, onlymetrics=TRUE )
+    if( res$error ) return( 5 )
   }
 
+
   # inicio el hijo   NESTED
-  tarch$mlflow$hijo_exp <- mlflow_start_run( nested= TRUE )
+  res <- safe_mlflow_start_run( nested= TRUE )
+  if( res$error ) return( 6 )
+  
+  tarch$mlflow$hijo_exp <- res$out
   tarch$mlflow$padre_activo <- FALSE
 
-  mlflow_log_param("mlfowexp", tarch$mlflow$exp_name )
-  mlflow_log_param("mlfowrun", tarch$mlflow$run_name )
-  mlflow_log_param("usuario", envg$mlog$usuario )
-  mlflow_log_param("jerarquia", "hijo" )
-  mlflow_log_param("maquina", envg$mlog$maquina )
-  mlflow_log_metric("fecha", as.numeric(format(t0, "%Y%m%d.%H%M%S")) )
-
-  # las columnas fijas
-  mlog_log_mlflow_reg( tarch$cols_fijas )
-
-  # las columnas propias del registro
-  mlog_log_mlflow_reg( reg )
+  # logueo el hijo completo
+  res <- mlog_log_mlflow_reg( reg_hijo, iter=tarch$mlflow$contador )
+  if( res$error ) return( 7 )
 
   # finalizo el experimento hijo
-  mlflow_end_run(run_id= tarch$mlflow$hijo_exp$run_uuid)
+  res <- safe_mlflow_end_run(run_id= tarch$mlflow$hijo_exp$run_uuid)
+  if( res$error ) return( 8 )
 
   # finalizo el PADRE
-  mlflow_end_run(run_id= tarch$mlflow$padre_exp$run_uuid )
+  res <- safe_mlflow_end_run(run_id= tarch$mlflow$padre_exp$run_uuid )
+  if( res$error ) return( 9 )
   tarch$mlflow$padre_activo <- FALSE
 
   # persisto en la estructura global
@@ -143,6 +273,8 @@ mlog_log_mlflow  <- function( reg, archivo, t0, parentreplicate=FALSE )
   # para poder retomar
   if( envg$mlog$persistir )
     write_yaml( envg$mlog , "mlog.yml" )
+
+  return(0)  # salgo  SIN errores
 }
 #------------------------------------------------------------------------------
 # funcion que se EXPORTA
@@ -198,6 +330,7 @@ mlog_addfile <- function( archivo, mlflow_exp, mlflow_run, cols_fijas)
 
     tarch$nom_arch <- archivo
     tarch$cols_fijas <- cols_fijas
+    tarch$mlflow$contador <- 0L
     tarch$mlflow$exp_name <- mlflow_exp
     tarch$mlflow$run_name <- mlflow_run
     tarch$mlflow$padre_creado <- FALSE

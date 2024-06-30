@@ -110,6 +110,7 @@ action_inicializar  <- function( memoria = TRUE) {
   envg$OUTPUT$time$start <- t0
 
   envg$PARAM$experimento <- carpeta_actual()  # nombre del experimento donde estoy parado
+  envg$PARAM$experimento_largo <- getwd()  # nombre del experimento donde estoy parado
 
   if( memoria ) action_limitar_memoria( 4 )
 
