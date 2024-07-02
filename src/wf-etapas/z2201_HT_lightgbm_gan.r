@@ -98,8 +98,16 @@ EstimarGanancia_lightgbm <- function(x) {
      )
   }
 
+
   # hago la union de los parametros basicos y los moviles que vienen en x
   param_completo <- c(envg$PARAM$lgb_basicos, x)
+
+  if( "extra_trees"  %in%  names(param_completo) )
+   param_completo$extra_trees <- as.logical( param_completo$extra_trees )
+
+  if( "is_unbalance"  %in%  names(param_completo) )
+   param_completo$is_unbalance <- as.logical( param_completo$is_unbalance )
+
 
   param_completo$early_stopping_rounds <-
     as.integer(400 + 4 / param_completo$learning_rate)
