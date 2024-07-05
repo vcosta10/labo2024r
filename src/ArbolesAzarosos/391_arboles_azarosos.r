@@ -22,9 +22,9 @@ PARAM$experimento <- 3910
 #  segun lo que indica la  Planilla Colaborativa
 PARAM$corridas <- data.table( 
   "cp" = c( -1),
-  "minsplit" =  c( 50),
-  "minbucket" = c( 10),
-  "maxdepth" =  c( 10)
+  "minsplit" =  c(50, ),
+  "minbucket" = c(10),
+  "maxdepth" =  c(10)
 )
 
 # parametros  arbol
