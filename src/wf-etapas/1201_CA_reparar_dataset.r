@@ -207,8 +207,8 @@ Corregir_NUEVO <- function(dataset) {
   gc()
   cat( "inicio Corregir_NUEVO()\n")
   
-  Corregir_MachineLearning(
-    Corregir_EstadisticaClasica(
+  Corregir_EstadisticaClasica(
+    Corregir_MachineLearning(
       dataset
     )
   )
@@ -244,6 +244,7 @@ setorderv(dataset, envg$PARAM$dataset_metadata$primarykey)
 switch( envg$PARAM$metodo,
   "MachineLearning"     = Corregir_MachineLearning(dataset),
   "EstadisticaClasica"  = Corregir_EstadisticaClasica(dataset),
+  "NUEVO"               = Corregir_NUEVO(dataset),
   "Ninguno"             = cat("No se aplica ninguna correccion.\n"),
 )
 
