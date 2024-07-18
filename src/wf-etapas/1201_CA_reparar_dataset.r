@@ -216,9 +216,20 @@ Corregir_NUEVO <- function(dataset) {
   cat( "fin Corregir_NUEVO()\n")
 }
 #------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-# Aqui empieza el programa
-cat( "z1201_CA_reparar_dataset.r  START\n")
+
+Corregir_MICE <- function(dataset) {
+  cat( "inicio Corregir_MICE()\n")
+  
+  # Instalación de paquete (en caso de que sea necesario)
+  if(!("mice" %in% installed.packages())) install.packages("mice", repos = "http://cran.us.r-project.org")
+  # Carga de paquete
+  library(mice)
+  
+  imputacion <- mice(dataset, maxit = 1, m = 1, method = 'cart', seed = 11)
+  dataset <- complete(imputacion, 1)
+}
+#------------------------------------------------------------------------------# Aqui empieza el programa
+cat( "1201_CA_reparar_dataset.r  START\n")
 action_inicializar() 
 
 # cargo el dataset
@@ -244,6 +255,7 @@ setorderv(dataset, envg$PARAM$dataset_metadata$primarykey)
 switch( envg$PARAM$metodo,
   "MachineLearning"     = Corregir_MachineLearning(dataset),
   "EstadisticaClasica"  = Corregir_EstadisticaClasica(dataset),
+  "MICE"                = Corregir_MICE(dataset),
   "NUEVO"               = Corregir_NUEVO(dataset),
   "Ninguno"             = cat("No se aplica ninguna correccion.\n"),
 )
