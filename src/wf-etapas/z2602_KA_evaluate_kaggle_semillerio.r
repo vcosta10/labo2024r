@@ -195,7 +195,7 @@ for ( irank in ranks ) {
         Sys.chmod( "subir.sh", mode = "744", use_umask = TRUE)
 
         res <- system( "./subir.sh", intern= TRUE )
-        Sys.sleep( 3 )  # espero para no saturar
+        Sys.sleep( 10 )  # espero para no saturar
         res <- "Successfully"  # pequena ayuda ...
 
         if( substr(res, 1, 12) == "Successfully" ) {
@@ -226,18 +226,18 @@ for ( irank in ranks ) {
     gc()
   }
 
-  tb_ganancias_local[ , gan_sum := gan_sum / length(isems)]
+  tb_ganancias_local[ , gan_sum := gan_sum / length(irepes)]
   vganancias <- c( vganancias, tb_ganancias_local[ , max( gan_sum )] )
 
   graficar_ganancias( 
       tb_ganancias_local,
       irank,
       ibayesiana= tb_predicciones[ rank==irank, min( iteracion_bayesiana )],
-      qsemillas= length(isems) )
+      qsemillas= length(irepes) )
 
   # MLFlow
 
-  semillas_qty <- length(isems)
+  semillas_qty <- length(irepes)
   for (icorte in cortes)
   {
      ganancia_media <- tb_ganancias_local[ envios == icorte, gan_sum ]
