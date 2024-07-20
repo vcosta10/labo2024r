@@ -136,7 +136,7 @@ for ( irank in ranks ) {
 
   for (vrepe in irepes)
   {
-    cat( irank, vsem, "\n")
+    cat( irank, vrepe, "\n")
     envg$OUTPUT$status$rank <- irank
     envg$OUTPUT$status$irepe <- vrepe
     GrabarOutput()
@@ -201,7 +201,7 @@ for ( irank in ranks ) {
         if( substr(res, 1, 12) == "Successfully" ) {
           res <- system( paste0("~/install/list ", nom_submit), intern= TRUE )
           cat( "res= ", res, "\n" )
-          tb_ganancias_local[ envios == icorte, paste0("m", vsem) := as.numeric(res) ]
+          tb_ganancias_local[ envios == icorte, paste0("m", vrepe) := as.numeric(res) ]
           tb_ganancias_local[ envios == icorte, gan_sum := gan_sum + as.numeric(res) ]
 
           # MLFlow
@@ -243,7 +243,7 @@ for ( irank in ranks ) {
      ganancia_media <- tb_ganancias_local[ envios == icorte, gan_sum ]
      linea <- list()
      linea$rank <- irank
-     linea$iteracion_bayesiana <- tb_predicciones[ rank==irank & isem==vsem, min(iteracion_bayesiana) ]
+     linea$iteracion_bayesiana <- tb_predicciones[ rank==irank & repeticion==vrepe, min(iteracion_bayesiana) ]
      linea$qsemillas <- semillas_qty
      linea$semilla <- -1
      linea$corte <- icorte
