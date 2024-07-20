@@ -217,7 +217,7 @@ Corregir_NUEVO <- function(dataset) {
 }
 #------------------------------------------------------------------------------
 
-Corregir_MICE <- function(dataset) {
+Corregir_MICE_cart <- function(dataset) {
   cat( "inicio Corregir_MICE()\n")
   
   # Instalación de paquete (en caso de que sea necesario)
@@ -228,6 +228,20 @@ Corregir_MICE <- function(dataset) {
   imputacion <- mice(dataset, maxit = 1, m = 1, method = 'cart', seed = 11)
   dataset <- complete(imputacion, 1)
 }
+#------------------------------------------------------------------------------
+
+Corregir_MICE_sample <- function(dataset) {
+  cat( "inicio Corregir_MICE_sample()\n")
+  
+  # Instalación de paquete (en caso de que sea necesario)
+  if(!("mice" %in% installed.packages())) install.packages("mice", repos = "http://cran.us.r-project.org")
+  # Carga de paquete
+  library(mice)
+  
+  imputacion <- mice(dataset, maxit = 1, m = 1, method = 'cart', seed = 11)
+  dataset <- complete(imputacion, 1)
+}
+
 #------------------------------------------------------------------------------# Aqui empieza el programa
 cat( "1201_CA_reparar_dataset.r  START\n")
 action_inicializar() 
@@ -253,11 +267,12 @@ setorderv(dataset, envg$PARAM$dataset_metadata$primarykey)
 
 # corrijo los  < foto_mes, campo >  que fueron pisados con cero
 switch( envg$PARAM$metodo,
-  "MachineLearning"     = Corregir_MachineLearning(dataset),
-  "EstadisticaClasica"  = Corregir_EstadisticaClasica(dataset),
-  "MICE"                = Corregir_MICE(dataset),
-  "NUEVO"               = Corregir_NUEVO(dataset),
-  "Ninguno"             = cat("No se aplica ninguna correccion.\n"),
+  "MachineLearning"     = Corregir_MachineLearning(dataset), # 003
+  "EstadisticaClasica"  = Corregir_EstadisticaClasica(dataset), 
+  "MICE_cart"           = Corregir_MICE_cart(dataset), # 001
+  "MICE_sample"         = Corregir_MICE_sample(dataset), # 005
+  "NUEVO"               = Corregir_NUEVO(dataset), # 002
+  "Ninguno"             = cat("No se aplica ninguna correccion.\n"), # 004
 )
 
 
