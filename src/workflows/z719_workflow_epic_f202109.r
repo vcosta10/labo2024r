@@ -81,7 +81,7 @@ CA_catastrophe_base <- function( pinputexps, metodo )
 {
   if( -1 == (param_local <- exp_init())$resultado ) return( 0 ) # linea fija
 
-  param_local$meta$script <- "/src/wf-etapas/z1201_CA_reparar_dataset.r"
+  param_local$meta$script <- "/src/wf-etapas/z1202_CA_reparar_dataset.r"
 
   # Opciones MachineLearning EstadisticaClasica Ninguno
   param_local$metodo <- metodo
