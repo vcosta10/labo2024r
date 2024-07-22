@@ -433,7 +433,7 @@ wf_julio <- function( pnombrewf )
   ts7 <- TS_strategy_base7()
   ht <- HT_tuning_base()
 
-  fm <- FM_final_models_lightgbm( c(ht, ts7), ranks=c(1), qsemillas=10 )
+  fm <- FM_final_models_lightgbm( c(ht, ts7), ranks=c(1), qsemillas=5 )
   SC_scoring( c(fm, ts7) )
   EV_evaluate_conclase_gan()
 
