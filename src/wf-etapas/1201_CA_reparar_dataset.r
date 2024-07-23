@@ -207,11 +207,9 @@ Corregir_NUEVO <- function(dataset) {
   gc()
   cat( "inicio Corregir_NUEVO()\n")
   
-  Corregir_EstadisticaClasica(
-    Corregir_MachineLearning(
-      dataset
-    )
-  )
+  Corregir_MachineLearning(dataset)
+  
+  Corregir_EstadisticaClasica(dataset)
   
   cat( "fin Corregir_NUEVO()\n")
 }

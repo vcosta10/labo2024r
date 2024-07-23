@@ -44,6 +44,27 @@ CorregirCampoMes <- function(pcampo, pmeses) {
   ]
 }
 #------------------------------------------------------------------------------
+
+CorregirCampoMes_MICE <- function(pcampo, pmeses) {
+  
+  meth <- rep("", ncol(dataset))
+  names(meth) <- colnames(dataset)
+  meth[names(meth) == pcampo] <- "sample"
+  imputacion <- mice(dataset, method = meth, maxit = 5, m = 1, seed = 7)
+  tbl <- mice::complete(dataset)
+  numcol <- which(names(meth) == pcampo)
+  
+  dataset[
+    ,
+    paste0(pcampo) := ifelse(foto_mes %in% pmeses,
+                             tbl[, numcol],
+                             get(pcampo)
+    )
+  ]
+}
+#------------------------------------------------------------------------------
+
+
 # reemplaza cada variable ROTA  (variable, foto_mes)
 #  con el promedio entre  ( mes_anterior, mes_posterior )
 
@@ -148,7 +169,7 @@ Corregir_MachineLearning <- function(dataset) {
 
   dataset[foto_mes %in% c(202006), ctarjeta_master_transacciones := NA] # 13
   dataset[foto_mes %in% c(202006), mtarjeta_master_consumo := NA] # 14
-  
+
   dataset[foto_mes %in% c(201904), ctarjeta_visa_debitos_automaticos := NA] # 15
   dataset[foto_mes %in% c(201904), mttarjeta_visa_debitos_automaticos := NA] # 16
 
@@ -197,6 +218,167 @@ Corregir_MachineLearning <- function(dataset) {
   cat( "fin Corregir_MachineLearning()\n")
 }
 #------------------------------------------------------------------------------
+
+Corregir_MLEC <- function(dataset) {
+  gc()
+  cat( "inicio Corregir_MLEC()\n")
+  
+  Corregir_MachineLearning(dataset)
+  
+  Corregir_EstadisticaClasica(dataset)
+  
+  cat( "fin Corregir_MLEC()\n")
+}
+#------------------------------------------------------------------------------
+
+Corregir_MICE <- function(dataset) {
+  
+  # se aplica previo la asignacion de NA por como funciona mice
+  
+  dataset[foto_mes %in% c(202006), active_quarter := NA] # 1
+  CorregirCampoMes_MICE("active_quarter", c(202006)) # 1
+  
+  dataset[foto_mes %in% c(202006), internet := NA] # 2
+  CorregirCampoMes_MICE("internet", c(202006)) # 2
+
+  dataset[foto_mes %in% c(201905, 201910, 202006), mrentabilidad := NA] # 3
+  CorregirCampoMes_MICE("mrentabilidad", c(201905, 201910, 202006)) # 3
+
+  dataset[foto_mes %in% c(201905, 201910, 202006), mrentabilidad_annual := NA] # 4
+  CorregirCampoMes_MICE("mrentabilidad_annual", c(201905, 201910, 202006)) # 4
+
+  dataset[foto_mes %in% c(201905, 201910, 202006), mcomisiones := NA] # 5
+  CorregirCampoMes_MICE("mcomisiones", c(201905, 201910, 202006)) # 5
+
+  dataset[foto_mes %in% c(201905, 201910, 202006), mactivos_margen := NA] # 6
+  CorregirCampoMes_MICE("mactivos_margen", c(201905, 201910, 202006)) # 6
+
+  dataset[foto_mes %in% c(201905, 201910, 202006), mpasivos_margen := NA] # 7
+  CorregirCampoMes_MICE("mpasivos_margen", c(201905, 201910, 202006)) # 7
+
+  dataset[foto_mes %in% c(202006), mcuentas_saldo := NA] # 8
+  CorregirCampoMes_MICE("mcuentas_saldo", c(202006)) # 8
+
+  dataset[foto_mes %in% c(202006), ctarjeta_debito_transacciones := NA] # 9
+  CorregirCampoMes_MICE("ctarjeta_debito_transacciones", c(202006)) # 9
+
+  dataset[foto_mes %in% c(202006), mautoservicio := NA] # 10
+  CorregirCampoMes_MICE("mautoservicio", c(202006)) # 10
+
+  dataset[foto_mes %in% c(202006), ctarjeta_visa_transacciones := NA] # 11
+  CorregirCampoMes_MICE("ctarjeta_visa_transacciones", c(202006)) # 11
+
+  dataset[foto_mes %in% c(202006), mtarjeta_visa_consumo := NA] # 12
+  CorregirCampoMes_MICE("mtarjeta_visa_consumo", c(202006)) # 12
+
+  dataset[foto_mes %in% c(202006), ctarjeta_master_transacciones := NA] # 13
+  CorregirCampoMes_MICE("ctarjeta_master_transacciones", c(202006)) # 13
+
+  dataset[foto_mes %in% c(202006), mtarjeta_master_consumo := NA] # 14
+  CorregirCampoMes_MICE("mtarjeta_master_consumo", c(202006)) # 14
+
+  dataset[foto_mes %in% c(201904), ctarjeta_visa_debitos_automaticos := NA] # 15
+  CorregirCampoMes_MICE("ctarjeta_visa_debitos_automaticos", c(201904)) # 15
+
+  dataset[foto_mes %in% c(201904), mttarjeta_visa_debitos_automaticos := NA] # 16
+  CorregirCampoMes_MICE("mttarjeta_visa_debitos_automaticos", c(201904)) # 16
+
+  dataset[foto_mes %in% c(201910, 202002, 202006, 202009, 202010, 202102), ccajeros_propios_descuentos := NA] # 17
+  CorregirCampoMes_MICE("ccajeros_propios_descuentos", c(201910, 202002, 202006, 202009, 202010, 202102)) # 17
+
+  dataset[foto_mes %in% c(201910, 202002, 202006, 202009, 202010, 202102), mcajeros_propios_descuentos := NA] # 18
+  CorregirCampoMes_MICE("mcajeros_propios_descuentos", c(201910, 202002, 202006, 202009, 202010, 202102)) # 18
+
+  dataset[foto_mes %in% c(201910, 202002, 202006, 202009, 202010, 202102), ctarjeta_visa_descuentos := NA] # 19
+  CorregirCampoMes_MICE("ctarjeta_visa_descuentos", c(201910, 202002, 202006, 202009, 202010, 202102)) # 19
+
+  dataset[foto_mes %in% c(201910, 202002, 202006, 202009, 202010, 202102), mtarjeta_visa_descuentos := NA] # 20
+  CorregirCampoMes_MICE("mtarjeta_visa_descuentos", c(201910, 202002, 202006, 202009, 202010, 202102)) # 20
+
+  dataset[foto_mes %in% c(201910, 202002, 202006, 202009, 202010, 202102), ctarjeta_master_descuentos := NA] # 21
+  CorregirCampoMes_MICE("ctarjeta_master_descuentos", c(201910, 202002, 202006, 202009, 202010, 202102)) # 21
+
+  dataset[foto_mes %in% c(201910, 202002, 202006, 202009, 202010, 202102), mtarjeta_master_descuentos := NA] # 22
+  CorregirCampoMes_MICE("mtarjeta_master_descuentos", c(201910, 202002, 202006, 202009, 202010, 202102)) # 22
+
+  dataset[foto_mes %in% c(201905, 201910, 202006), ccomisiones_otras := NA] # 23
+  CorregirCampoMes_MICE("ccomisiones_otras", c(201905, 201910, 202006)) # 23
+
+  dataset[foto_mes %in% c(201905, 201910, 202006), mcomisiones_otras := NA] # 24
+  CorregirCampoMes_MICE("mcomisiones_otras", c(201905, 201910, 202006)) # 24
+
+  dataset[foto_mes %in% c(202006), cextraccion_autoservicio := NA] # 25
+  CorregirCampoMes_MICE("cextraccion_autoservicio", c(202006)) # 25
+
+  dataset[foto_mes %in% c(202006), mextraccion_autoservicio := NA] # 26
+  CorregirCampoMes_MICE("mextraccion_autoservicio", c(202006)) # 26
+
+  dataset[foto_mes %in% c(202006), ccheques_depositados := NA] # 27
+  CorregirCampoMes_MICE("ccheques_depositados", c(202006)) # 27
+
+  dataset[foto_mes %in% c(202006), mcheques_depositados := NA] # 28
+  CorregirCampoMes_MICE("mcheques_depositados", c(202006)) # 28
+
+  dataset[foto_mes %in% c(202006), ccheques_emitidos := NA] # 29
+  CorregirCampoMes_MICE("ccheques_emitidos", c(202006)) # 29
+
+  dataset[foto_mes %in% c(202006), mcheques_emitidos := NA] # 30
+  CorregirCampoMes_MICE("mcheques_emitidos", c(202006)) # 30
+
+  dataset[foto_mes %in% c(202006), ccheques_depositados_rechazados := NA] # 31
+  CorregirCampoMes_MICE("ccheques_depositados_rechazados", c(202006)) # 31
+
+  dataset[foto_mes %in% c(202006), mcheques_depositados_rechazados := NA] # 32
+  CorregirCampoMes_MICE("mcheques_depositados_rechazados", c(202006)) # 32
+
+  dataset[foto_mes %in% c(202006), ccheques_emitidos_rechazados := NA] # 33
+  CorregirCampoMes_MICE("ccheques_emitidos_rechazados", c(202006)) # 33
+
+  dataset[foto_mes %in% c(202006), mcheques_emitidos_rechazados := NA] # 34
+  CorregirCampoMes_MICE("mcheques_emitidos_rechazados", c(202006)) # 34
+
+  dataset[foto_mes %in% c(202006), tcallcenter := NA] # 35
+  CorregirCampoMes_MICE("tcallcenter", c(202006)) # 35
+
+  dataset[foto_mes %in% c(202006), ccallcenter_transacciones := NA] # 36
+  CorregirCampoMes_MICE("ccallcenter_transacciones", c(202006)) # 36
+
+  dataset[foto_mes %in% c(202006), thomebanking := NA] # 37
+  CorregirCampoMes_MICE("thomebanking", c(202006)) # 37
+
+  dataset[foto_mes %in% c(201910, 202006), chomebanking_transacciones := NA] # 38
+  CorregirCampoMes_MICE("chomebanking_transacciones", c(201910, 202006)) # 38
+
+  dataset[foto_mes %in% c(202006), ccajas_transacciones := NA] # 39
+  CorregirCampoMes_MICE("ccajas_transacciones", c(202006)) # 39
+
+  dataset[foto_mes %in% c(202006), ccajas_consultas := NA] # 40
+  CorregirCampoMes_MICE("ccajas_consultas", c(202006)) # 40
+
+  dataset[foto_mes %in% c(202006, 202105), ccajas_depositos := NA] # 41
+  CorregirCampoMes_MICE("ccajas_depositos", c(202006, 202105)) # 41
+
+  dataset[foto_mes %in% c(202006), ccajas_extracciones := NA] # 42
+  CorregirCampoMes_MICE("ccajas_extracciones", c(202006)) # 42
+
+  dataset[foto_mes %in% c(202006), ccajas_otras := NA] # 43
+  CorregirCampoMes_MICE("ccajas_otras", c(202006)) # 43
+
+  dataset[foto_mes %in% c(202006), catm_trx := NA] # 44
+  CorregirCampoMes_MICE("catm_trx", c(202006)) # 44
+
+  dataset[foto_mes %in% c(202006), matm := NA] # 45
+  CorregirCampoMes_MICE("matm", c(202006)) # 45
+
+  dataset[foto_mes %in% c(202006), catm_trx_other := NA] # 46
+  CorregirCampoMes_MICE("catm_trx_other", c(202006)) # 46
+
+  dataset[foto_mes %in% c(202006), matm_other := NA] # 47
+  CorregirCampoMes_MICE("matm_other", c(202006)) # 47
+  
+  cat("fin Corregir_MICE()\n")
+}
+
 #------------------------------------------------------------------------------
 # Aqui empieza el programa
 cat( "1202_CA_reparar_dataset.r  START\n")
@@ -226,10 +408,11 @@ setorderv(dataset, envg$PARAM$dataset_metadata$primarykey)
 # corrijo los  < foto_mes, campo >  que fueron pisados con cero
 switch( envg$PARAM$metodo,
   "MachineLearning"     = Corregir_MachineLearning(dataset), # 001
-  "EstadisticaClasica"  = Corregir_EstadisticaClasica(dataset),
+  "EstadisticaClasica"  = Corregir_EstadisticaClasica(dataset), # 003
+  "MICE"                = Corregir_MICE(dataset), # 004
+  "MLEC"                = Corregir_MLEC(dataset), # 005
   "Ninguno"             = cat("No se aplica ninguna correccion.\n"), # 002
 )
-
 
 #------------------------------------------------------------------------------
 # grabo el dataset
