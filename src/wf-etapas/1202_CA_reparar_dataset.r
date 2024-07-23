@@ -424,8 +424,8 @@ setorderv(dataset, envg$PARAM$dataset_metadata$primarykey)
 switch( envg$PARAM$metodo,
   "MachineLearning"     = Corregir_MachineLearning(dataset), # 001
   "EstadisticaClasica"  = Corregir_EstadisticaClasica(dataset), # 003
-  "MICE"                = Corregir_MICE(dataset), # 004
-  "MLEC"                = Corregir_MLEC(dataset), # 005
+  "MICE"                = Corregir_MICE(dataset), # 005
+  "MLEC"                = Corregir_MLEC(dataset), # 004
   "Ninguno"             = cat("No se aplica ninguna correccion.\n"), # 002
 )
 
