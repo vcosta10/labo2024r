@@ -24,22 +24,43 @@ source( paste0( args[1] , "/src/lib/action_lib.r" ) )
 #------------------------------------------------------------------------------
 
 CorregirCampoMes <- function(pcampo, pmeses) {
-
-  tbl <- dataset[, list(
-    "v1" = shift(get(pcampo), 1, type = "lag"),
-    "v2" = shift(get(pcampo), 1, type = "lead")
-  ),
-  by = eval(envg$PARAM$dataset_metadata$entity_id)
+  
+  tbl <- dataset[, 
+                 list(
+                   "foto_mes" = get(envg$PARAM$dataset_metadata$periodo),
+                   "clase_actual" = get(envg$PARAM$dataset_metadata$clase),
+                   "clase_lead1" = shift(get(envg$PARAM$dataset_metadata$clase), 1, type = "lead"),
+                   "lag1" = shift(get(pcampo), 1, type = "lag"),
+                   "lag2" = shift(get(pcampo), 2, type = "lag"),
+                   "lead1" = shift(get(pcampo), 1, type = "lead"),
+                   "lead2" = shift(get(pcampo), 2, type = "lead")
+                 ),
+                 by = eval(envg$PARAM$dataset_metadata$entity_id)
   ]
-
+  
+  tbl[, lead1 := ifelse(clase_actual == "BAJA+2", NA, lead1)] # Ignorar lead1 para los BAJA+2
+  tbl[, lead2 := ifelse(clase_lead1  == "BAJA+2", NA, lead2)] # Idem para los que seran BAJA+2 el mes siguiente
+  
+  tbl[, lag1  := ifelse((foto_mes-1) %in% pmeses,  lag2,  lag1)] # Tomar un lag mas atras si el mes anterior esta roto
+  tbl[, lead1 := ifelse((foto_mes+1) %in% pmeses, lead2, lead1)] # Tomar un lead mas adelante si el mes proximo esta roto
+  
   tbl[, paste0(envg$PARAM$dataset_metadata$entity_id) := NULL]
+  tbl[, foto_mes := NULL]
+  tbl[, clase_actual := NULL]
+  tbl[, clase_lead1 := NULL]
+  tbl[, lag2 := NULL]
+  tbl[, lead2 := NULL]
+  
   tbl[, promedio := rowMeans(tbl, na.rm = TRUE)]
-
+  
+  tbl[, promedio := ifelse(is.nan(promedio), NA, promedio)] # reemplazar NaN por NA
+  
   dataset[
     ,
-    paste0(pcampo) := ifelse(!(foto_mes %in% pmeses),
-      get(pcampo),
-      tbl$promedio
+    paste0(pcampo) := ifelse(
+      eval(envg$PARAM$dataset_metadata$periodo) %in% pmeses,
+      tbl$promedio,
+      get(pcampo)
     )
   ]
 }
@@ -54,13 +75,7 @@ CorregirCampoMes_MICE <- function(pcampo, pmeses) {
   tbl <- mice::complete(dataset)
   numcol <- which(names(meth) == pcampo)
   
-  dataset[
-    ,
-    paste0(pcampo) := ifelse(foto_mes %in% pmeses,
-                             tbl[, numcol],
-                             get(pcampo)
-    )
-  ]
+  dataset[, paste0(pcampo) := ifelse(foto_mes %in% pmeses, tbl[, numcol], get(pcampo))]
 }
 #------------------------------------------------------------------------------
 
