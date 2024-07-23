@@ -68,6 +68,10 @@ CorregirCampoMes <- function(pcampo, pmeses) {
 
 CorregirCampoMes_MICE <- function(pcampo, pmeses) {
   
+  
+  # Instalación de paquete (en caso de que sea necesario)
+  if(!("mice" %in% installed.packages())) install.packages("mice", repos = "http://cran.us.r-project.org")
+  
   meth <- rep("", ncol(dataset))
   names(meth) <- colnames(dataset)
   meth[names(meth) == pcampo] <- "sample"
