@@ -21,6 +21,10 @@ require("yaml")
 # args <- c( "~/labo2024r" )
 args <- commandArgs(trailingOnly=TRUE)
 source( paste0( args[1] , "/src/lib/action_lib.r" ) )
+
+# Instalación de paquete (en caso de que sea necesario)
+if(!("mice" %in% installed.packages())) install.packages("mice", repos = "http://cran.us.r-project.org")
+library(mice)
 #------------------------------------------------------------------------------
 
 CorregirCampoMes <- function(pcampo, pmeses) {
@@ -67,19 +71,14 @@ CorregirCampoMes <- function(pcampo, pmeses) {
 #------------------------------------------------------------------------------
 
 CorregirCampoMes_MICE <- function(pcampo, pmeses) {
-  
-  
-  # Instalación de paquete (en caso de que sea necesario)
-  if(!("mice" %in% installed.packages())) install.packages("mice", repos = "http://cran.us.r-project.org")
-  
+
   meth <- rep("", ncol(dataset))
   names(meth) <- colnames(dataset)
   meth[names(meth) == pcampo] <- "sample"
   imputacion <- mice(dataset, method = meth, maxit = 5, m = 1, seed = 7)
   tbl <- mice::complete(dataset)
-  numcol <- which(names(meth) == pcampo)
   
-  dataset[, paste0(pcampo) := ifelse(foto_mes %in% pmeses, tbl[, numcol], get(pcampo))]
+  dataset[, paste0(pcampo) := ifelse(foto_mes %in% pmeses, tbl[, get(pcampo)], get(pcampo))]
 }
 #------------------------------------------------------------------------------
 
