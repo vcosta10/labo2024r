@@ -181,8 +181,8 @@ FErf_attributes_base <- function( pinputexps, ratio, desvio)
   param_local$lgb_param <- list(
     # parametros que se pueden cambiar
     num_iterations = 60,
-    num_leaves  = 40,
-    min_data_in_leaf = 150,
+    num_leaves  = 30,
+    min_data_in_leaf = 200,
     feature_fraction_bynode  = 0.1,
 
     # para que LightGBM emule Random Forest
@@ -430,17 +430,17 @@ wf_septiembre <- function( pnombrewf )
   DT_incorporar_dataset_competencia2024()
   CA_catastrophe_base( metodo="MLEC")
   FEintra_manual_base()
-  DR_drifting_base(metodo="rank_simple")
+  DR_drifting_base(metodo="rank_cero_fijo")
   FEhist_base()
   CN_canaritos_asesinos_base(ratio=0.0, desvio=-1.0)
   FErf_attributes_base()
-  CN_canaritos_asesinos_base(ratio=0.0, desvio=-1.0)
+  CN_canaritos_asesinos_base(ratio=0.2, desvio=-3.0)
   #CN_canaritos_asesinos_base(ratio=0.2, desvio=4.0)
 
   ts9 <- TS_strategy_base9()
   ht <- HT_tuning_epic()
 
-  fm <- FM_final_models_lightgbm_semillerio( c(ht, ts9), ranks=c(1), semillerio=17, repeticiones_exp=7 )
+  fm <- FM_final_models_lightgbm_semillerio( c(ht, ts9), ranks=c(1), semillerio=30, repeticiones_exp=10 )
   SC_scoring_semillerio( c(fm, ts9) )
   KA_evaluate_kaggle_semillerio()
 
