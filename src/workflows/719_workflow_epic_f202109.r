@@ -429,7 +429,7 @@ wf_septiembre <- function( pnombrewf )
 
   DT_incorporar_dataset_competencia2024()
   CA_catastrophe_base( metodo="MLEC")
-  FEintra_manual_base(metodo="rank_simple")
+  FEintra_manual_base()
   DR_drifting_base(metodo="rank_cero_fijo")
   FEhist_base()
   CN_canaritos_asesinos_base(ratio=0.0, desvio=-1.0)
